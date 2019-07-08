@@ -44,7 +44,6 @@ class Dashboard extends Component {
       apiServer: 'http://localhost:1260',
       userSession: this.userSession
     })
-    
 
     this.loadTasks()
   }
@@ -100,11 +99,16 @@ class Dashboard extends Component {
     this.setState({value: event.target.value});
    }
 
-  removeTask(e) {
+  async removeTask(e) {
     e.preventDefault()
-    const tasks = remove(e.target.dataset.index, this.state)
-    this.setState({ tasks })
-    this.saveTasks(tasks)
+    const deletedID = this.state.tasks[e.target.dataset.index]._id
+    const todo = await Testing.findById({deletedID});
+    todo.destroy(); //delete it from radiks-server
+
+    //const tasks = remove(e.target.dataset.index, this.state)
+    //this.setState({ tasks }) // remove it from the current state
+    this.loadTasks()
+    //this.saveTasks(tasks)
   }
 
   async addTask(e) {
@@ -119,22 +123,32 @@ class Dashboard extends Component {
     //});
     //console.log(incompleteTodos)
     const task = this.state.value
-    this.state.pending.push(task)
+    //this.state.pending.push(task)
     const tasks = this.state.tasks
-    tasks.push(task)
-    const todo = new Todo({task: {task}, completed: false});
+    const todo = new Testing({task: {task}, completed: false});
+    tasks.push(todo)
     await todo.save();
     this.setState({tasks: tasks, value: ''})
+    
+    //this.setState({value: ''})
+    //loadTasks()
 
     //this.setState({tasks: incompleteTodos})
     //const del = await Todo.findById('150685ad0529-487a-978d-8300a16241f6');
     //del.destroy();
   }
 
-  checkTask(e) {
-    const tasks = check(e.target.dataset.index, this.state)
-    this.setState({ tasks })
-    this.saveTasks(tasks)
+  async checkTask(e) {
+    const changeID = this.state.tasks[e.target.dataset.index]._id
+    const todo = await Testing.findById({changeID})
+    const updatedStatus = {
+      completed: !this.state.completed,
+    }
+    todo.update(updatedStatus);
+    await todo.save();
+    //const tasks = check(e.target.dataset.index, this.state)
+    //this.setState({ tasks })
+    this.loadTasks()
   }
 
   signOut(e) {
@@ -160,15 +174,6 @@ class Dashboard extends Component {
         </div>
         <br></br>
         <div className="row">
-          <div className="col-2">
-            <div className="nav flex-column nav-pills" id="v-pills-tab" role="tablist" aria-orientation="vertical">
-              <a className="nav-link active" id="v-pills-all-tab" data-toggle="pill" href="#v-pills-all" role="tab" aria-controls="v-pills-all" aria-selected="true">All Tasks</a>
-              <a className="nav-link" id="v-pills-profile-tab" data-toggle="pill" href="#v-pills-profile" role="tab" aria-controls="v-pills-profile" aria-selected="false">Profile</a>
-              <a className="nav-link" id="v-pills-add-tab" data-toggle="pill" href="#v-pills-add" role="tab" aria-controls="v-pills-add" aria-selected="false">Add</a>
-              <a className="nav-link" id="v-pills-messages-tab" data-toggle="pill" href="#v-pills-messages" role="tab" aria-controls="v-pills-messages" aria-selected="false">Messages</a>
-
-            </div>
-          </div>
           <div className="col-9">
             <div className="tab-content" id="v-pills-tabContent">
               <div className="tab-pane fade show active" id="v-pills-all" role="tabpanel" aria-labelledby="v-pills-all-tab">
@@ -196,37 +201,91 @@ class Dashboard extends Component {
                   </div>
                   <br></br>
                   <div className="row justify-content-center">
-                    <ul className="nav nav-pills nav-fill">
+                    <ul className="nav nav-pills nav-fill" role="tablist">
                       <li className="nav-item">
-                        <a className="nav-link active" data-toggle="tab"href="#">Pending</a>
+                        <a className="nav-link active" data-toggle="pill"href="#pills-all">All Tasks</a>
                       </li>
                       <li className="nav-item">
-                        <a className="nav-link" data-toggle="tab" href="#">Completed</a>
+                        <a className="nav-link" data-toggle="pill" href="#pills-pending">Pending</a>
+                      </li>
+                      <li className="nav-item">
+                        <a className="nav-link" data-toggle="pill" href="#pills-completed">Completed</a>
                       </li>
                     </ul>
                   </div>
                   <br></br>
-                  <div className="row justify-content-center">
-                    <div className="frame">
-                      {this.state.tasks.map((task, i) =>
-                        <ul key={i}>
-                          <div className="row">
-                            <input type="checkbox" className="form-check-input" data-index={i} onClick={this.checkTask} checked={task[1]? true : false}></input>
-                            <div className="col">
-                              <span className="input-group-text">
-                                <div className="task">
-                                  {task[1]? <s>{task[0]}</s> : task[0]}
-                                </div> 
-                                <div className="delete">
-                                  <button className="btn btn-primary" data-index={i} onClick={this.removeTask}>X</button>
+                  <div className="tab-content">
+                    <div class="tab-pane fade active show" id="pills-all" role="tabpanel" aria-labelledby="pills-all-tab">
+                      <div className="row justify-content-center">
+                        <div className="frame">
+                          {this.state.tasks.map((task, i) =>
+                            <ul key={i}>
+                              <div className="row">
+                                <input type="checkbox" className="form-check-input" data-index={i} onClick={this.checkTask} checked={task[1]? true : false}></input>
+                                <div className="col">
+                                  <span className="input-group-text">
+                                    <div className="task">
+                                      {task.attrs[1]? <s>{task.attrs[0]}</s> : task.attrs[0]}
+                                    </div> 
+                                    <div className="delete">
+                                      <button className="btn btn-primary" data-index={i} onClick={this.removeTask}>X</button>
+                                    </div>
+                                  </span>
                                 </div>
-                              </span>
-                            </div>
+                              </div>
+                            </ul>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                    <div class="tab-pane fade" id="pills-pending" role="tabpanel" aria-labelledby="pills-pending-tab">                   
+                      <div className="row justify-content-center">
+                          <div className="frame">
+                            {this.state.pending.map((task, i) =>
+                              <ul key={i}>
+                                <div className="row">
+                                  <input type="checkbox" className="form-check-input" data-index={i} onClick={this.checkTask} checked={task[1]? true : false}></input>
+                                  <div className="col">
+                                    <span className="input-group-text">
+                                      <div className="task">
+                                        {task.attrs[1]? <s>{task.attrs[0]}</s> : task.attrs[0]}
+                                      </div> 
+                                      <div className="delete">
+                                        <button className="btn btn-primary" data-index={i} onClick={this.removeTask}>X</button>
+                                      </div>
+                                    </span>
+                                  </div>
+                                </div>
+                              </ul>
+                            )}
                           </div>
-                        </ul>
-                      )}
+                        </div>    
+                    </div>
+                    <div class="tab-pane fade" id="pills-completed" role="tabpanel" aria-labelledby="pills-completed-tab">                   
+                      <div className="row justify-content-center">
+                          <div className="frame">
+                            {this.state.completed.map((task, i) =>
+                              <ul key={i}>
+                                <div className="row">
+                                  <input type="checkbox" className="form-check-input" data-index={i} onClick={this.checkTask} checked={task[1]? true : false}></input>
+                                  <div className="col">
+                                    <span className="input-group-text">
+                                      <div className="task">
+                                        {task.attrs[1]? <s>{task.attrs[0]}</s> : task.attrs[0]}
+                                      </div> 
+                                      <div className="delete">
+                                        <button className="btn btn-primary" data-index={i} onClick={this.removeTask}>X</button>
+                                      </div>
+                                    </span>
+                                  </div>
+                                </div>
+                              </ul>
+                            )}
+                          </div>
+                        </div>    
                     </div>
                   </div>
+                  
               
               </div>
               <div className="tab-pane fade" id="v-pills-profile" role="tabpanel" aria-labelledby="v-pills-profile-tab">Profile</div>

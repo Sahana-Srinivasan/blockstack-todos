@@ -25,8 +25,8 @@ class App extends Component {
         if(!session.loadUserData().username) {
           throw new Error('This app requires a username.')
         }
-        window.location = `/`
         await User.createWithCurrentUser();
+        window.location = `/`
     }
   }
 

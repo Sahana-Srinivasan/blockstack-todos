@@ -13,8 +13,7 @@ class Testing extends Model {
     completed: {
       type: Boolean,
       decrypted: true
-    },
-    project: String
+    }
   }
 };
 
@@ -27,6 +26,8 @@ class Dashboard extends Component {
     this.state = {
       tasks: [],
       value: '',
+      pending: [],
+      completed: []
 
     }
 
@@ -56,6 +57,7 @@ class Dashboard extends Component {
       }
     }
 
+
   }
 
   async loadTasks() {
@@ -67,6 +69,20 @@ class Dashboard extends Component {
     //    this.setState({tasks})
     //  } 
     //})
+
+    const incompleteTodos = await Testing.fetchList({
+      completed: false
+    });
+    const completeTodos = await Testing.fetchList({
+      completed: true
+    })
+    const allTodos = await Testing.fetchList({
+    })
+    this.setState({
+      pending: incompleteTodos, 
+      completed: completeTodos,
+      tasks: allTodos
+    })
     
   }
 
@@ -98,10 +114,18 @@ class Dashboard extends Component {
     //this.saveTasks(tasks)
     //const todo = new Testing({task: "Laundry", completed: true, project: "Home"});
     //await todo.save();
-    var incompleteTodos = await Testing.fetchList({
-      completed: false
-    });
-    console.log(incompleteTodos)
+    //var incompleteTodos = await Testing.fetchList({
+    //  completed: false
+    //});
+    //console.log(incompleteTodos)
+    const task = this.state.value
+    this.state.pending.push(task)
+    const tasks = this.state.tasks
+    tasks.push(task)
+    const todo = new Todo({task: {task}, completed: false});
+    await todo.save();
+    this.setState({tasks: tasks, value: ''})
+
     //this.setState({tasks: incompleteTodos})
     //const del = await Todo.findById('150685ad0529-487a-978d-8300a16241f6');
     //del.destroy();

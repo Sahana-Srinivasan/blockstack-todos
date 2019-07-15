@@ -13,7 +13,8 @@ class Testing extends Model {
     completed: {
       type: Boolean,
       decrypted: true
-    }
+    },
+    project: String
   }
 };
 
@@ -69,19 +70,23 @@ class Dashboard extends Component {
     //  } 
     //})
 
-    const incompleteTodos = await Testing.fetchList({
+    var incompleteTodos = await Testing.fetchList({
       completed: false
     });
-    const completeTodos = await Testing.fetchList({
+    var completeTodos = await Testing.fetchList({
       completed: true
     })
-    const allTodos = await Testing.fetchList({
+    var allTodos = await Testing.fetchList({
     })
     this.setState({
       pending: incompleteTodos, 
       completed: completeTodos,
       tasks: allTodos
     })
+
+    console.log(incompleteTodos);
+    console.log(completeTodos);
+    console.log(allTodos);
     
   }
 
@@ -116,19 +121,20 @@ class Dashboard extends Component {
     //const tasks = add(this.state)
     //this.setState({value: '', tasks})
     //this.saveTasks(tasks)
-    //const todo = new Testing({task: "Laundry", completed: true, project: "Home"});
-    //await todo.save();
+    const todo = new Testing({task: "Please work", completed: true, project: "Home"});
+    await todo.save();
     //var incompleteTodos = await Testing.fetchList({
     //  completed: false
     //});
     //console.log(incompleteTodos)
-    const task = this.state.value
+    //const task = this.state.value
     //this.state.pending.push(task)
-    const tasks = this.state.tasks
-    const todo = new Testing({task: {task}, completed: false});
-    tasks.push(todo)
-    await todo.save();
-    this.setState({tasks: tasks, value: ''})
+    //const tasks = this.state.tasks
+    //const todo = new Testing({task: {task}, completed: false});
+   // tasks.push(todo)
+    //await todo.save();
+    this.setState({value: ''})
+    this.loadTasks();
     
     //this.setState({value: ''})
     //loadTasks()
